@@ -12,12 +12,18 @@ const client = new Client({
 
 client.once('ready', async () => {
     console.log('✅ RoLink Online!');
+    // Registra o comando /setup para criar o Webhook
     const setup = new SlashCommandBuilder()
         .setName('setup')
-        .setDescription('Configura o sistema de verificação')
+        .setDescription('Cria o Webhook e configura o canal de logs')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
-
-    await client.application.commands.create(setup);
+    
+    try {
+        await client.application.commands.create(setup);
+        console.log('✅ Comando /setup pronto para uso no Discord.');
+    } catch (error) {
+        console.log('❌ Erro ao registrar comando:', error.message);
+    }
 });
 
 client.on('interactionCreate', async interaction => {
@@ -26,45 +32,47 @@ client.on('interactionCreate', async interaction => {
     if (interaction.commandName === 'setup') {
         await interaction.deferReply({ ephemeral: true });
 
-        const guild = interaction.guild;
+        try {
+            const channel = interaction.channel;
 
-        // 1. Cria ou acha o canal de logs
-        let logChannel = guild.channels.cache.find(c => c.name === 'rolink-logs');
-        if (!logChannel) {
-            logChannel = await guild.channels.create({
-                name: 'rolink-logs',
-                type: ChannelType.GuildText,
-                permissionOverwrites: [{ id: guild.id, deny: [PermissionFlagsBits.ViewChannel] }]
-            });
-        }
-
-        // 2. O BOT CRIA O WEBHOOK SOZINHO AQUI:
-        const webhooks = await logChannel.fetchWebhooks();
-        let myWebhook = webhooks.find(wh => wh.name === 'RoLink-System');
-        
-        if (!myWebhook) {
-            myWebhook = await logChannel.createWebhook({
+            // Cria o Webhook automaticamente no canal onde você usou o comando
+            const webhook = await channel.createWebhook({
                 name: 'RoLink-System',
                 avatar: client.user.displayAvatarURL(),
             });
+
+            // ESTE É O MOMENTO: O link aparece aqui no seu Termux!
+            console.log('\n-----------------------------------------');
+            console.log('🚀 COPIE O LINK ABAIXO PARA O SEU HTML (index.html):');
+            console.log(webhook.url);
+            console.log('-----------------------------------------\n');
+
+            await interaction.editReply({ content: `✅ Webhook criado com sucesso! Verifique o console do seu Termux para pegar o link.` });
+        } catch (error) {
+            console.log('❌ Erro no Setup:', error.message);
+            await interaction.editReply({ content: `❌ Erro: Verifique se o bot tem permissão de "Gerenciar Webhooks".` });
         }
-
-        console.log(`\n🔗 LINK DO WEBHOOK PARA O SITE:\n${myWebhook.url}\n`);
-
-        await interaction.editReply({ content: `✅ Canal e Webhook configurados! O link do Webhook apareceu no seu Termux.` });
     }
 });
 
-// Lógica de dar o cargo quando o webhook avisar
+// Lógica para o bot ler a mensagem do Webhook e dar o cargo
 client.on('messageCreate', async (message) => {
-    if (message.content.includes('NOVA VERIFICAÇÃO')) {
-        const roleV = message.guild.roles.cache.find(r => r.name === 'Verified');
-        const members = await message.guild.members.fetch();
-        const member = members.first(); // Aqui pegamos o membro que precisa do cargo
+    // Se a mensagem começar com /verify (vinda do seu site via Webhook)
+    if (message.content.startsWith('/verify')) {
+        const userId = message.content.split(' ')[1];
+        
+        if (!userId || userId === 'null') return;
 
-        if (member && roleV) {
-            await member.roles.add(roleV);
-            message.channel.send(`🎊 **${member.user.tag}** verificado pelo Webhook!`);
+        try {
+            const member = await message.guild.members.fetch(userId);
+            const roleV = message.guild.roles.cache.find(r => r.name === 'Verified');
+            
+            if (member && roleV) {
+                await member.roles.add(roleV);
+                message.channel.send(`🎊 **${member.user.tag}** verificado automaticamente! (ID: ${userId})`);
+            }
+        } catch (e) {
+            console.log(`❌ Erro: Não achei o usuário ${userId} no servidor.`);
         }
     }
 });
