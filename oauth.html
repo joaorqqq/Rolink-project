@@ -1,0 +1,11 @@
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    if (code) {
+        // Salva o código temporariamente e vai para o Roblox
+        sessionStorage.setItem('discord_code', code);
+        window.location.href = 'roblox.html';
+    } else {
+        document.write("Erro: Código de autorização não encontrado.");
+    }
+</script>

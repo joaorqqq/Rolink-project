@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoLink | Verificação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen text-white">
+    <div class="glass p-8 rounded-2xl shadow-2xl border border-slate-700 max-w-sm w-full text-center">
+        <img src="RolinkLogo.png" alt="Logo" class="w-24 h-24 mx-auto mb-4 rounded-full border-4 border-blue-500 shadow-lg">
+        <h1 class="text-2xl font-bold mb-2 text-blue-400">Verificação RoLink</h1>
+        <p class="text-slate-400 mb-6 text-sm">Conecte sua conta Discord para verificar seu perfil do Roblox.</p>
+        
+        <a href="https://discord.com/api/oauth2/authorize?client_id=1466593752612208720&redirect_uri=https://SEU-USUARIO.github.io/Rolink-project/oauth.html&response_type=code&scope=identify" 
+           class="block w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg transition-all transform hover:scale-105 active:scale-95 shadow-lg shadow-indigo-900/20">
+            Login com Discord
+        </a>
+
+        <p id="status" class="mt-4 text-[10px] font-medium text-slate-500 uppercase tracking-widest">Powered by RoLink OAuth2</p>
+    </div>
+</body>
+</html>
